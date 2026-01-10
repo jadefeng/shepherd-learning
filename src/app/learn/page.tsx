@@ -320,7 +320,7 @@ export default function LearnPage() {
       <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-black/50">
         <span>Need to paste a transcript?</span>
         <Link href={`/transcripts?course=${course.id}`} className="text-black/70">
-          Manage transcripts
+          View transcript library
         </Link>
       </div>
 

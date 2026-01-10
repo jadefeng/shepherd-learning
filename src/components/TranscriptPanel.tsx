@@ -37,14 +37,14 @@ export default function TranscriptPanel({
               </p>
             )}
             <p className="text-sm text-black/60">
-              No transcript is saved yet. You can manage transcripts for every
-              lesson on the transcripts page.
+              Transcript text is loaded from the markdown library in this repo.
+              Add or update it there to make it available here.
             </p>
             <Link
               href="/transcripts"
               className="inline-flex items-center justify-center rounded-full border border-black/10 bg-[var(--secondary)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white"
             >
-              Manage transcripts
+              View transcript library
             </Link>
           </>
         )}

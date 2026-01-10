@@ -40,7 +40,7 @@ export default function CourseIntro({
         href={`/transcripts?course=${course.id}`}
         className="text-xs font-semibold uppercase tracking-[0.3em] text-black/50"
       >
-        Manage transcripts for this course
+        View transcript library
       </Link>
       <button
         type="button"

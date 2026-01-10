@@ -5,11 +5,11 @@ export const dynamic = "force-dynamic";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getCourseById } from "@/lib/course";
-import { loadProgress, saveProgress } from "@/lib/storage";
 
 type TranscriptDraft = {
   videoId: string;
   text: string;
+  status: "loading" | "available" | "missing";
 };
 
 export default function TranscriptsPage() {
@@ -18,51 +18,58 @@ export default function TranscriptsPage() {
   const [drafts, setDrafts] = useState<TranscriptDraft[]>([]);
 
   useEffect(() => {
-    const progress = loadProgress(course.id);
-    const initial = course.videoIds.map((id) => ({
-      videoId: id,
-      text: progress.transcripts[id]?.text ?? "",
-    }));
-    setDrafts(initial);
-  }, [course.id]);
-
-  const updateDraft = (videoId: string, text: string) => {
-    setDrafts((prev) =>
-      prev.map((draft) =>
-        draft.videoId === videoId ? { ...draft, text } : draft,
-      ),
-    );
-  };
-
-  const saveTranscript = (videoId: string, text: string) => {
-    if (!text.trim()) {
-      return;
-    }
-    const progress = loadProgress(course.id);
-    progress.transcripts[videoId] = {
-      source: "manual",
-      text: text.trim(),
-      updatedAt: Date.now(),
-    };
-    saveProgress(course.id, progress);
-  };
-
-  const loadFromLibrary = async (videoId: string) => {
-    try {
-      const response = await fetch(
-        `/api/transcript-library?course=${course.id}&videoId=${videoId}`,
+    let isMounted = true;
+    const loadLibrary = async () => {
+      const initial = course.videoIds.map((id) => ({
+        videoId: id,
+        text: "",
+        status: "loading" as const,
+      }));
+      setDrafts(initial);
+      await Promise.all(
+        course.videoIds.map(async (id) => {
+          try {
+            const response = await fetch(
+              `/api/transcript-library?course=${course.id}&videoId=${id}`,
+            );
+            if (!response.ok) {
+              throw new Error("missing");
+            }
+            const data = (await response.json()) as { transcript?: string };
+            if (!isMounted) {
+              return;
+            }
+            setDrafts((prev) =>
+              prev.map((draft) =>
+                draft.videoId === id
+                  ? {
+                      ...draft,
+                      text: data.transcript ?? "",
+                      status: data.transcript ? "available" : "missing",
+                    }
+                  : draft,
+              ),
+            );
+          } catch {
+            if (!isMounted) {
+              return;
+            }
+            setDrafts((prev) =>
+              prev.map((draft) =>
+                draft.videoId === id
+                  ? { ...draft, text: "", status: "missing" }
+                  : draft,
+              ),
+            );
+          }
+        }),
       );
-      if (!response.ok) {
-        return;
-      }
-      const data = (await response.json()) as { transcript?: string };
-      if (data.transcript) {
-        updateDraft(videoId, data.transcript);
-      }
-    } catch {
-      // Ignore failures for manual input.
-    }
-  };
+    };
+    loadLibrary();
+    return () => {
+      isMounted = false;
+    };
+  }, [course.id]);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-4 pb-16 pt-8 sm:px-6">
@@ -74,8 +81,8 @@ export default function TranscriptsPage() {
           Paste transcripts for {course.title}
         </h1>
         <p className="mt-2 text-sm text-black/60">
-          Saved transcripts will override auto-fetched text and improve quiz
-          quality.
+          Transcripts are loaded from markdown files in the repository. Edit the
+          files and redeploy to update the lesson content.
         </p>
       </header>
 
@@ -85,7 +92,7 @@ export default function TranscriptsPage() {
             key={draft.videoId}
             className="space-y-3 rounded-3xl border border-black/10 bg-white/90 p-5"
           >
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-black/40">
                   Lesson {index + 1}
@@ -94,29 +101,27 @@ export default function TranscriptsPage() {
                   Video ID: {draft.videoId}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => saveTranscript(draft.videoId, draft.text)}
-                className="rounded-full border border-black/10 bg-[var(--secondary)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white"
+              <span
+                className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${
+                  draft.status === "available"
+                    ? "bg-emerald-100 text-emerald-800"
+                    : draft.status === "loading"
+                      ? "bg-black/5 text-black/40"
+                      : "bg-amber-100 text-amber-800"
+                }`}
               >
-                Save transcript
-              </button>
-              <button
-                type="button"
-                onClick={() => loadFromLibrary(draft.videoId)}
-                className="rounded-full border border-black/15 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-black/70"
-              >
-                Load from files
-              </button>
+                {draft.status === "available"
+                  ? "Loaded"
+                  : draft.status === "loading"
+                    ? "Loading"
+                    : "Missing"}
+              </span>
             </div>
-            <textarea
-              className="min-h-[160px] w-full rounded-2xl border border-black/20 bg-white p-3 text-sm text-black/80 focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-              placeholder="Paste transcript text here."
-              value={draft.text}
-              onChange={(event) =>
-                updateDraft(draft.videoId, event.target.value)
-              }
-            />
+            <div className="min-h-[120px] whitespace-pre-wrap rounded-2xl border border-black/10 bg-[var(--surface)] p-3 text-sm text-black/70">
+              {draft.status === "loading"
+                ? "Loading transcript from repository..."
+                : draft.text || "Transcript not found in markdown yet."}
+            </div>
           </div>
         ))}
       </section>

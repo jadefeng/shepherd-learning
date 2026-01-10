@@ -17,7 +17,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 - The app calls `GET /api/transcript?videoId=...` to try to auto-fetch a transcript.
 - If that fails, the quiz still generates using a generic OSHA fallback summary.
-- Use the transcript manager at `/transcripts?course=...` to paste transcripts for each video, or load them directly from the markdown files in `transcripts/`.
+- Transcripts are loaded from the markdown files in `transcripts/`.
 - Manual transcripts are saved in `localStorage` and always override auto-fetched text.
 
 ## Replacing the heuristic quiz generator
