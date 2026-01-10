@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getCourseById } from "@/lib/course";
@@ -45,6 +47,23 @@ export default function TranscriptsPage() {
     saveProgress(course.id, progress);
   };
 
+  const loadFromLibrary = async (videoId: string) => {
+    try {
+      const response = await fetch(
+        `/api/transcript-library?course=${course.id}&videoId=${videoId}`,
+      );
+      if (!response.ok) {
+        return;
+      }
+      const data = (await response.json()) as { transcript?: string };
+      if (data.transcript) {
+        updateDraft(videoId, data.transcript);
+      }
+    } catch {
+      // Ignore failures for manual input.
+    }
+  };
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-4 pb-16 pt-8 sm:px-6">
       <header className="rounded-3xl border border-black/10 bg-white/80 p-6">
@@ -66,7 +85,7 @@ export default function TranscriptsPage() {
             key={draft.videoId}
             className="space-y-3 rounded-3xl border border-black/10 bg-white/90 p-5"
           >
-            <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-black/40">
                   Lesson {index + 1}
@@ -81,6 +100,13 @@ export default function TranscriptsPage() {
                 className="rounded-full border border-black/10 bg-[var(--secondary)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white"
               >
                 Save transcript
+              </button>
+              <button
+                type="button"
+                onClick={() => loadFromLibrary(draft.videoId)}
+                className="rounded-full border border-black/15 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-black/70"
+              >
+                Load from files
               </button>
             </div>
             <textarea

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -131,6 +133,24 @@ export default function LearnPage() {
       setTranscriptLoading(true);
       setTranscriptError(null);
       try {
+        const libraryResponse = await fetch(
+          `/api/transcript-library?course=${course.id}&videoId=${videoId}`,
+        );
+        if (libraryResponse.ok) {
+          const data = (await libraryResponse.json()) as { transcript: string };
+          if (data.transcript) {
+            const progress = loadProgress(course.id);
+            progress.transcripts[videoId] = {
+              source: "library",
+              text: data.transcript,
+              updatedAt: Date.now(),
+            };
+            saveProgress(course.id, progress);
+            setTranscriptState({ text: data.transcript, source: "library" });
+            return;
+          }
+        }
+
         const response = await fetch(`/api/transcript?videoId=${videoId}`);
         if (!response.ok) {
           const message = await response.json();

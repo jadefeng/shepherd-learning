@@ -7,7 +7,7 @@ export type StoredCompletion = {
 };
 
 export type StoredTranscript = {
-  source: "auto" | "manual";
+  source: "auto" | "manual" | "library";
   text: string;
   updatedAt: number;
 };
