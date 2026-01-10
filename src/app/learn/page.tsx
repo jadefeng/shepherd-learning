@@ -17,7 +17,7 @@ import { loadProgress, saveProgress, type AnswerChoice } from "@/lib/storage";
 
 type TranscriptState = {
   text: string | null;
-  source: "auto" | "manual" | null;
+  source: "auto" | "manual" | "library" | null;
 };
 
 const getStoredTranscript = (courseId: string, videoId: string) => {
