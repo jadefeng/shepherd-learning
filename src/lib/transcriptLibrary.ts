@@ -5,7 +5,7 @@ export const getLibraryTranscriptPath = (course: Course, videoId: string) => {
   if (index === -1) {
     return null;
   }
-  return `transcripts/${course.id}/lesson-${index + 1}-${videoId}.md`;
+  return `/transcripts/${course.id}/lesson-${index + 1}-${videoId}.md`;
 };
 
 export const stripTranscriptHeading = (content: string) => {

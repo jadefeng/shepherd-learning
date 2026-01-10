@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { readFile } from "node:fs/promises";
 import { getCourseById } from "@/lib/course";
 import {
   getLibraryTranscriptPath,
@@ -18,8 +17,8 @@ export async function GET(request: Request) {
   }
 
   const course = getCourseById(courseId);
-  const path = getLibraryTranscriptPath(course, videoId);
-  if (!path) {
+  const assetPath = getLibraryTranscriptPath(course, videoId);
+  if (!assetPath) {
     return NextResponse.json(
       { error: "Transcript not found for this lesson." },
       { status: 404 },
@@ -27,7 +26,15 @@ export async function GET(request: Request) {
   }
 
   try {
-    const content = await readFile(path, "utf8");
+    const assetUrl = new URL(assetPath, request.url);
+    const assetResponse = await fetch(assetUrl);
+    if (!assetResponse.ok) {
+      return NextResponse.json(
+        { error: "Transcript not available in library yet." },
+        { status: 404 },
+      );
+    }
+    const content = await assetResponse.text();
     const transcript = stripTranscriptHeading(content);
     if (!transcript || transcript.includes("PASTE TRANSCRIPT HERE")) {
       return NextResponse.json(
