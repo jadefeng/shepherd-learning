@@ -18,11 +18,16 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - The app calls `GET /api/transcript?videoId=...` to try to auto-fetch a transcript.
 - If that fails, the quiz still generates using a generic OSHA fallback summary.
 - Transcripts are loaded from the markdown files in `public/transcripts/`.
-- Manual transcripts are saved in `localStorage` and always override auto-fetched text.
+
+## OpenAI quiz generation
+
+- Set `OPENAI_API_KEY` in `.env.local` for local development.
+- In Vercel, add the same key in Project Settings → Environment Variables.
+- The server route `src/app/api/generate-quiz/route.ts` calls `gpt-4o-mini` and returns exactly 3 MCQs.
 
 ## Replacing the heuristic quiz generator
 
-`src/lib/quiz.ts` contains the deterministic quiz generator. To swap in an LLM later, replace the `generateQuiz` function implementation and keep the return shape the same. The API route `src/app/api/generate-quiz/route.ts` already calls this function.
+`src/lib/quiz.ts` contains the deterministic fallback generator. If you want to disable OpenAI, swap the API route to call `generateQuiz` directly.
 
 ## Project structure
 
@@ -32,8 +37,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - `src/app/api/transcript/route.ts` → transcript fetch
 - `src/app/api/generate-quiz/route.ts` → quiz generation
 - `src/lib/course.ts` → fixed course catalog
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More
 

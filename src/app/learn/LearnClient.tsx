@@ -191,7 +191,10 @@ export default function LearnClient() {
     ].join(" ");
     setQuizError(null);
     setIsGenerating(true);
-    const seed = Date.now();
+    const seed = Date.now() + Math.floor(Math.random() * 1000);
+    resetCompletion();
+    setAnswers({});
+    setSubmitted(false);
     try {
       const response = await fetch("/api/generate-quiz", {
         method: "POST",
@@ -209,14 +212,6 @@ export default function LearnClient() {
       }
       const data = (await response.json()) as { questions: QuizQuestionType[] };
       setQuizQuestions(data.questions);
-      const progress = loadProgress(course.id);
-      if (progress.completed[videoId]) {
-        setAnswers(progress.completed[videoId].answers);
-        setSubmitted(true);
-      } else {
-        setAnswers({});
-        setSubmitted(false);
-      }
     } catch (error) {
       setQuizError(
         error instanceof Error ? error.message : "Quiz generation failed.",
