@@ -71,6 +71,7 @@ export default function ProgressBar({
           {course.videoIds.map((id, index) => {
             const isComplete = completedIds.includes(id);
             const isCurrent = index === currentIndex;
+            const isLocked = index > currentIndex;
             return (
               <button
                 type="button"
@@ -82,7 +83,12 @@ export default function ProgressBar({
                     ? "border-[var(--secondary)] bg-[var(--accent)]"
                     : "border-black/20 bg-white"
                 }`}
+                disabled={isLocked}
+                title={isLocked ? "Complete this lesson to unlock." : undefined}
                 onClick={() => {
+                  if (isLocked) {
+                    return;
+                  }
                   const progress = loadProgress(course.id);
                   progress.currentStepIndex = index;
                   saveProgress(course.id, progress);
@@ -90,7 +96,15 @@ export default function ProgressBar({
                 }}
                 aria-label={`Lesson ${index + 1} ${isComplete ? "completed" : ""}`}
               >
-                <span className={isComplete ? "text-white" : "text-black/60"}>
+                <span
+                  className={
+                    isComplete
+                      ? "text-white"
+                      : isLocked
+                        ? "text-black/30"
+                        : "text-black/60"
+                  }
+                >
                   {index + 1}
                 </span>
               </button>

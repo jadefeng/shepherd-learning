@@ -41,13 +41,21 @@ export default function Navbar() {
           Shepherd Learning
         </a>
         {isAuthed && (
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="text-xs font-semibold uppercase tracking-[0.3em] text-black/50"
-          >
-            Sign out
-          </button>
+          <div className="flex items-center gap-4">
+            <a
+              href="/review"
+              className="text-xs font-semibold uppercase tracking-[0.3em] text-black/50"
+            >
+              Review
+            </a>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="text-xs font-semibold uppercase tracking-[0.3em] text-black/50"
+            >
+              Sign out
+            </button>
+          </div>
         )}
       </nav>
     </header>

@@ -228,12 +228,16 @@ export default function LearnClient() {
       return total + (answers[question.id] === question.correct ? 1 : 0);
     }, 0);
     const progress = loadProgress(course.id);
-    progress.completed[videoId] = {
-      completedAt: Date.now(),
-      score,
-      answers,
-    };
-    progress.currentStepIndex = Math.min(currentIndex + 1, totalLessons - 1);
+    if (score === quizQuestions.length) {
+      progress.completed[videoId] = {
+        completedAt: Date.now(),
+        score,
+        answers,
+      };
+      progress.currentStepIndex = Math.min(currentIndex + 1, totalLessons - 1);
+    } else {
+      progress.currentStepIndex = currentIndex;
+    }
     saveProgress(course.id, progress);
     setSubmitted(true);
   };
