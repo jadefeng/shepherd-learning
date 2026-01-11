@@ -28,6 +28,11 @@ export default function Home() {
     <main className="flex min-h-screen w-full flex-col items-center gap-10 px-4 py-16 sm:px-6">
       <section className="w-full max-w-5xl rounded-3xl border border-black/10 bg-white/80 p-6 shadow-[0_30px_80px_-60px_rgba(0,0,0,0.5)]">
         <div className="flex flex-col gap-4">
+          <img
+            src="/shepherd-logo.png"
+            alt="Shepherd Learning logo"
+            className="block max-w-[200px] h-auto"
+          />
           <p className="text-xs font-semibold uppercase tracking-[0.4em] text-black/50">
             Shepherd Learning
           </p>
