@@ -23,9 +23,7 @@ export default function CourseIntro({
   return (
     <section className="mx-auto flex w-full max-w-4xl flex-col gap-6 rounded-3xl border border-black/10 bg-white/80 p-6 shadow-[0_30px_80px_-60px_rgba(0,0,0,0.5)] backdrop-blur sm:p-10">
       <div className="flex flex-col gap-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.4em] text-black/60">
-          Safety learning series
-        </p>
+
         <h1 className="text-3xl font-semibold sm:text-5xl">{title}</h1>
         <p className="max-w-2xl text-base leading-7 text-black/70 sm:text-lg">
           {description}
