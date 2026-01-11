@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import CourseIntro from "@/components/CourseIntro";
 import { useAuth } from "@/components/AuthContext";
+import { useLanguage } from "@/components/LanguageContext";
+import { copy } from "@/lib/i18n";
 import { courses, getTotalLessons } from "@/lib/course";
 import { loadProgress } from "@/lib/storage";
 
@@ -11,6 +13,8 @@ export default function Home() {
   const router = useRouter();
   const [progressMap, setProgressMap] = useState<Record<string, boolean>>({});
   const { isAuthenticated } = useAuth();
+  const { language } = useLanguage();
+  const c = copy[language];
 
   useEffect(() => {
     const nextMap: Record<string, boolean> = {};
@@ -34,15 +38,25 @@ export default function Home() {
             className="block max-w-[200px] h-auto"
           />
           <p className="text-xs font-semibold uppercase tracking-[0.4em] text-black/50">
-            Shepherd Learning
+            {c.home.heroLabel}
           </p>
           <h1 className="text-3xl font-semibold sm:text-5xl">
-            Safety training built for crews on the move
+            {c.home.heroTitle}
           </h1>
           <p className="max-w-2xl text-base leading-7 text-black/70 sm:text-lg">
-            Shepherd Learning delivers short, focused safety modules with
-            knowledge checks so workers stay confident, compliant, and job-ready.
+            {c.home.heroBody}
           </p>
+          <div className="flex flex-wrap gap-3 text-sm font-medium text-black/60">
+            <span className="rounded-full border border-black/10 bg-[var(--surface)] px-4 py-2">
+              {c.home.chip1}
+            </span>
+            <span className="rounded-full border border-black/10 bg-[var(--surface)] px-4 py-2">
+              {c.home.chip2}
+            </span>
+            <span className="rounded-full border border-black/10 bg-[var(--surface)] px-4 py-2">
+              {c.home.chip3}
+            </span>
+          </div>
           
         </div>
       </section>

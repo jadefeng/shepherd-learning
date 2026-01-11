@@ -1,5 +1,9 @@
+"use client";
+
 import type { QuizQuestion as Question } from "@/lib/quiz";
 import type { AnswerChoice } from "@/lib/storage";
+import { useLanguage } from "@/components/LanguageContext";
+import { copy } from "@/lib/i18n";
 
 type QuizResultsProps = {
   questions: Question[];
@@ -7,6 +11,8 @@ type QuizResultsProps = {
 };
 
 export default function QuizResults({ questions, answers }: QuizResultsProps) {
+  const { language } = useLanguage();
+  const c = copy[language];
   const score = questions.reduce((total, question) => {
     return total + (answers[question.id] === question.correct ? 1 : 0);
   }, 0);
@@ -14,9 +20,9 @@ export default function QuizResults({ questions, answers }: QuizResultsProps) {
   return (
     <section className="space-y-4 rounded-3xl border border-black/10 bg-white/95 p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-lg font-semibold">Quiz feedback</h3>
+        <h3 className="text-lg font-semibold">{c.learn.resultsTitle}</h3>
         <span className="rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-black/70">
-          Score {score} / {questions.length}
+          {c.review.score} {score} / {questions.length}
         </span>
       </div>
       {questions.map((question) => {
@@ -32,17 +38,18 @@ export default function QuizResults({ questions, answers }: QuizResultsProps) {
             }`}
           >
             <summary className="cursor-pointer text-sm font-semibold">
-              {isCorrect ? "Correct" : "Needs review"} · {question.prompt}
+              {isCorrect ? c.learn.correct : c.learn.needsReview} ·{" "}
+              {question.prompt}
             </summary>
             <div className="mt-3 space-y-2 text-sm text-black/70">
               <p>
-                Your answer:{" "}
+                {c.learn.yourAnswer}{" "}
                 <span className="font-semibold text-black/80">
-                  {selected ?? "No answer"}
+                  {selected ?? c.learn.noAnswer}
                 </span>
               </p>
               <p>
-                Correct answer:{" "}
+                {c.learn.correctAnswer}{" "}
                 <span className="font-semibold text-black/80">
                   {question.correct}
                 </span>

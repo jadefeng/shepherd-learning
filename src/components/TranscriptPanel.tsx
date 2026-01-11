@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { useLanguage } from "@/components/LanguageContext";
+import { copy } from "@/lib/i18n";
 
 type TranscriptPanelProps = {
   transcript: string | null;
@@ -15,16 +16,26 @@ export default function TranscriptPanel({
   isLoading,
   errorMessage,
 }: TranscriptPanelProps) {
+  const { language } = useLanguage();
+  const c = copy[language];
+  const sourceText =
+    sourceLabel === "auto"
+      ? c.learn.sourceAuto
+      : sourceLabel === "library"
+        ? c.learn.sourceLibrary
+        : sourceLabel === "manual"
+          ? c.learn.sourceManual
+          : sourceLabel;
   return (
     <details className="rounded-2xl border border-black/10 bg-white/90 p-4 open:bg-white">
       <summary className="cursor-pointer text-sm font-semibold uppercase tracking-[0.2em] text-black/60">
-        Transcript
+        {c.learn.transcriptTitle}
       </summary>
       <div className="mt-4 space-y-3 text-sm leading-6 text-black/70">
-        {isLoading && <p>Fetching transcript…</p>}
+        {isLoading && <p>{c.learn.transcriptLoading}</p>}
         {sourceLabel && (
           <p className="text-xs uppercase tracking-[0.2em] text-black/40">
-            Source: {sourceLabel}
+            {c.learn.transcriptSource}: {sourceText}
           </p>
         )}
         {transcript ? (
@@ -37,8 +48,7 @@ export default function TranscriptPanel({
               </p>
             )}
             <p className="text-sm text-black/60">
-              Transcript text is loaded from the markdown library in this repo.
-              Add or update it there to make it available here.
+              {c.learn.transcriptMissing}
             </p>
           </>
         )}

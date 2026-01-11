@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { getCourseById } from "@/lib/course";
+import { useLanguage } from "@/components/LanguageContext";
+import { copy } from "@/lib/i18n";
 
 type TranscriptDraft = {
   videoId: string;
@@ -14,6 +16,14 @@ export default function TranscriptsClient() {
   const searchParams = useSearchParams();
   const course = getCourseById(searchParams.get("course"));
   const [drafts, setDrafts] = useState<TranscriptDraft[]>([]);
+  const [translations, setTranslations] = useState<Record<string, string>>({});
+  const { language } = useLanguage();
+  const c = copy[language];
+
+  const translationPrefix = useMemo(
+    () => `shepherd-translation:library:${course.id}`,
+    [course.id],
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -69,18 +79,71 @@ export default function TranscriptsClient() {
     };
   }, [course.id]);
 
+  useEffect(() => {
+    if (language !== "es") {
+      setTranslations({});
+      return;
+    }
+    let isMounted = true;
+    const translateAll = async () => {
+      await Promise.all(
+        drafts
+          .filter((draft) => draft.status === "available" && draft.text)
+          .map(async (draft) => {
+            const cacheKey = `${translationPrefix}:${draft.videoId}:es`;
+            if (typeof window !== "undefined") {
+              const cached = window.localStorage.getItem(cacheKey);
+              if (cached) {
+                if (!isMounted) {
+                  return;
+                }
+                setTranslations((prev) => ({ ...prev, [draft.videoId]: cached }));
+                return;
+              }
+            }
+            try {
+              const response = await fetch("/api/translate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: draft.text, target: "es" }),
+              });
+              if (!response.ok) {
+                return;
+              }
+              const data = (await response.json()) as { translatedText: string };
+              if (!isMounted) {
+                return;
+              }
+              setTranslations((prev) => ({
+                ...prev,
+                [draft.videoId]: data.translatedText,
+              }));
+              if (typeof window !== "undefined") {
+                window.localStorage.setItem(cacheKey, data.translatedText);
+              }
+            } catch {
+              // Ignore translation failures.
+            }
+          }),
+      );
+    };
+    translateAll();
+    return () => {
+      isMounted = false;
+    };
+  }, [drafts, language, translationPrefix]);
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-4 pb-16 pt-8 sm:px-6">
       <header className="rounded-3xl border border-black/10 bg-white/80 p-6">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-black/50">
-          Transcript manager
+          {c.transcriptLibrary.title}
         </p>
         <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">
-          Paste transcripts for {course.title}
+          {c.transcriptLibrary.subtitle} {course.title}
         </h1>
         <p className="mt-2 text-sm text-black/60">
-          Transcripts are loaded from markdown files in the repository. Edit the
-          files and redeploy to update the lesson content.
+          {c.transcriptLibrary.body}
         </p>
       </header>
 
@@ -93,10 +156,10 @@ export default function TranscriptsClient() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-black/40">
-                  Lesson {index + 1}
+                  {c.learn.lesson} {index + 1}
                 </p>
                 <p className="text-base font-semibold text-black/70">
-                  Video ID: {draft.videoId}
+                  {c.review.videoId} {draft.videoId}
                 </p>
               </div>
               <span
@@ -109,16 +172,18 @@ export default function TranscriptsClient() {
                 }`}
               >
                 {draft.status === "available"
-                  ? "Loaded"
+                  ? c.transcriptLibrary.loaded
                   : draft.status === "loading"
-                    ? "Loading"
-                    : "Missing"}
+                    ? c.transcriptLibrary.loading
+                    : c.transcriptLibrary.missing}
               </span>
             </div>
             <div className="min-h-[120px] whitespace-pre-wrap rounded-2xl border border-black/10 bg-[var(--surface)] p-3 text-sm text-black/70">
               {draft.status === "loading"
-                ? "Loading transcript from repository..."
-                : draft.text || "Transcript not found in markdown yet."}
+                ? c.transcriptLibrary.loadingMessage
+                : (language === "es"
+                    ? translations[draft.videoId] ?? draft.text
+                    : draft.text) || c.transcriptLibrary.missingMessage}
             </div>
           </div>
         ))}

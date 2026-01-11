@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Course } from "@/lib/course";
+import { useLanguage } from "@/components/LanguageContext";
+import { copy } from "@/lib/i18n";
 import { loadProgress, saveProgress } from "@/lib/storage";
 
 type ProgressBarProps = {
@@ -17,6 +19,8 @@ export default function ProgressBar({
   const router = useRouter();
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { language } = useLanguage();
+  const c = copy[language];
 
   const totalLessons = course.videoIds.length;
   const progress = useMemo(() => {
@@ -55,10 +59,11 @@ export default function ProgressBar({
     <div className={wrapperClass}>
       <div className={innerClass}>
         <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-black/60">
-          <span>Course progress</span>
+          <span>{c.progress.title}</span>
           <span>
-            {Math.round(progress * 100)}% · Lesson {Math.min(currentIndex + 1, totalLessons)}{" "}
-            of {totalLessons}
+            {Math.round(progress * 100)}% · {c.progress.lesson}{" "}
+            {Math.min(currentIndex + 1, totalLessons)} {c.progress.of}{" "}
+            {totalLessons}
           </span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-black/10">
@@ -84,7 +89,7 @@ export default function ProgressBar({
                     : "border-black/20 bg-white"
                 }`}
                 disabled={isLocked}
-                title={isLocked ? "Complete this lesson to unlock." : undefined}
+                title={isLocked ? c.progress.locked : undefined}
                 onClick={() => {
                   if (isLocked) {
                     return;

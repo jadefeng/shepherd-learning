@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Source_Sans_3 } from "next/font/google";
 import AuthGate from "@/components/AuthGate";
+import { LanguageProvider } from "@/components/LanguageContext";
 import Navbar from "@/components/Navbar";
 import "./globals.css";
 
@@ -30,8 +31,10 @@ export default function RootLayout({
       <body
         className={`${headingFont.variable} ${bodyFont.variable} antialiased`}
       >
-        <Navbar />
-        <AuthGate>{children}</AuthGate>
+        <LanguageProvider>
+          <Navbar />
+          <AuthGate>{children}</AuthGate>
+        </LanguageProvider>
       </body>
     </html>
   );

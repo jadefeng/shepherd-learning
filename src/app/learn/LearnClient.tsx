@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import NavigationFooter from "@/components/NavigationFooter";
 import ProgressBar from "@/components/ProgressBar";
@@ -8,6 +8,8 @@ import QuizQuestion from "@/components/QuizQuestion";
 import QuizResults from "@/components/QuizResults";
 import TranscriptPanel from "@/components/TranscriptPanel";
 import VideoPlayer from "@/components/VideoPlayer";
+import { useLanguage } from "@/components/LanguageContext";
+import { copy } from "@/lib/i18n";
 import { getCourseById, getTotalLessons, getVideoWatchUrl } from "@/lib/course";
 import type { QuizQuestion as QuizQuestionType } from "@/lib/quiz";
 import { loadProgress, saveProgress, type AnswerChoice } from "@/lib/storage";
@@ -38,6 +40,10 @@ export default function LearnClient() {
   const [submitted, setSubmitted] = useState(false);
   const [quizError, setQuizError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [translatedTranscript, setTranslatedTranscript] = useState<string | null>(
+    null,
+  );
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const courseId = searchParams.get("course");
   const course = getCourseById(courseId);
@@ -45,8 +51,17 @@ export default function LearnClient() {
   const videoId = course.videoIds[currentIndex];
   const isLastLesson = currentIndex === totalLessons - 1;
   const isFirstLesson = currentIndex === 0;
+  const { language } = useLanguage();
+  const c = copy[language];
 
   const availableTranscript = transcriptState.text;
+  const displayTranscript =
+    language === "es" ? translatedTranscript ?? transcriptState.text : transcriptState.text;
+
+  const transcriptKey = useMemo(
+    () => `shepherd-translation:${course.id}:${videoId}:${language}`,
+    [course.id, language, videoId],
+  );
 
   useEffect(() => {
     const progress = loadProgress(course.id);
@@ -165,11 +180,7 @@ export default function LearnClient() {
           setTranscriptState({ text: data.transcript, source: "auto" });
         }
       } catch (error) {
-        setTranscriptError(
-          error instanceof Error
-            ? error.message
-            : "Transcript unavailable. Paste it manually.",
-        );
+        setTranscriptError(c.learn.transcriptUnavailable);
       } finally {
         setTranscriptLoading(false);
       }
@@ -177,15 +188,52 @@ export default function LearnClient() {
     fetchTranscript();
   }, [course.id, videoId]);
 
+  useEffect(() => {
+    const translateTranscript = async () => {
+      if (!availableTranscript || language !== "es") {
+        setTranslatedTranscript(null);
+        return;
+      }
+      if (typeof window !== "undefined") {
+        const cached = window.localStorage.getItem(transcriptKey);
+        if (cached) {
+          setTranslatedTranscript(cached);
+          return;
+        }
+      }
+      setIsTranslating(true);
+      try {
+        const response = await fetch("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: availableTranscript, target: "es" }),
+        });
+        if (!response.ok) {
+          throw new Error("Translation failed.");
+        }
+        const data = (await response.json()) as { translatedText: string };
+        setTranslatedTranscript(data.translatedText);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(transcriptKey, data.translatedText);
+        }
+      } catch {
+        setTranslatedTranscript(availableTranscript);
+      } finally {
+        setIsTranslating(false);
+      }
+    };
+    translateTranscript();
+  }, [availableTranscript, language, transcriptKey]);
+
   const handleGenerateQuiz = async () => {
     if (!videoId) {
-      setQuizError("Lesson video is unavailable.");
+      setQuizError(c.learn.quizFailed);
       return;
     }
     const fallbackTranscript = [
       `${videoTitle} covers core expectations for safe work in ${course.title}.`,
       "Workers should follow required procedures, report hazards, and use protective equipment.",
-      "The lesson emphasizes identifying risks early and communicating safety concerns.",
+      "The module emphasizes identifying risks early and communicating safety concerns.",
       "Always follow supervisor guidance and safety rules to reduce incidents.",
     ].join(" ");
     setQuizError(null);
@@ -201,8 +249,9 @@ export default function LearnClient() {
         body: JSON.stringify({
           videoId,
           videoTitle,
-          transcriptText: availableTranscript ?? fallbackTranscript,
+          transcriptText: displayTranscript ?? availableTranscript ?? fallbackTranscript,
           seed,
+          language,
         }),
       });
       if (!response.ok) {
@@ -213,7 +262,7 @@ export default function LearnClient() {
       setQuizQuestions(data.questions);
     } catch (error) {
       setQuizError(
-        error instanceof Error ? error.message : "Quiz generation failed.",
+        error instanceof Error ? error.message : c.learn.quizFailed,
       );
     } finally {
       setIsGenerating(false);
@@ -297,26 +346,26 @@ export default function LearnClient() {
       <ProgressBar course={course} />
       <header className="flex flex-col gap-2 rounded-3xl border border-black/10 bg-white/80 p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.4em] text-black/50">
-          Lesson {currentIndex + 1} of {totalLessons}
+          {c.learn.lesson} {currentIndex + 1} {c.learn.of} {totalLessons}
         </p>
         <h1 className="text-2xl font-semibold sm:text-3xl">{videoTitle}</h1>
         <p className="text-sm text-black/60">
-          Generate the quiz after reviewing the transcript for this lesson.
+          {c.learn.subtitle}
         </p>
       </header>
 
       <VideoPlayer videoId={videoId} title={videoTitle} />
 
       <TranscriptPanel
-        transcript={transcriptState.text}
+        transcript={displayTranscript}
         sourceLabel={transcriptState.source}
-        isLoading={transcriptLoading}
+        isLoading={transcriptLoading || isTranslating}
         errorMessage={transcriptError}
       />
 
       <section className="space-y-4 rounded-3xl border border-black/10 bg-white/85 p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold">Knowledge check</h2>
+          <h2 className="text-lg font-semibold">{c.learn.knowledgeCheck}</h2>
           <button
             type="button"
             onClick={handleGenerateQuiz}
@@ -327,7 +376,7 @@ export default function LearnClient() {
                 : "cursor-not-allowed border border-black/10 bg-black/5 text-black/40"
             }`}
           >
-            {isGenerating ? "Generating..." : "Generate quiz"}
+            {isGenerating ? c.learn.generating : c.learn.generateQuiz}
           </button>
         </div>
         {quizError && (
@@ -336,9 +385,7 @@ export default function LearnClient() {
           </p>
         )}
         {quizQuestions.length === 0 && (
-          <p className="text-sm text-black/60">
-            Generate the quiz to answer three quick questions about this lesson.
-          </p>
+          <p className="text-sm text-black/60">{c.learn.quizPrompt}</p>
         )}
         <div className="space-y-4">
           {quizQuestions.map((question) => (
@@ -364,7 +411,7 @@ export default function LearnClient() {
                 : "cursor-not-allowed border border-black/10 bg-black/5 text-black/40"
             }`}
           >
-            Submit answers
+            {c.learn.submitAnswers}
           </button>
         )}
         {submitted && (
@@ -374,14 +421,14 @@ export default function LearnClient() {
               onClick={handleRetakeQuiz}
               className="w-full rounded-full border border-black/15 bg-white px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-black/70"
             >
-              Retake quiz
+              {c.learn.retakeQuiz}
             </button>
             <button
               type="button"
               onClick={handleRegenerateQuiz}
               className="w-full rounded-full bg-[var(--secondary)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.2em] text-white"
             >
-              New questions
+              {c.learn.newQuestions}
             </button>
           </div>
         )}
@@ -394,8 +441,7 @@ export default function LearnClient() {
         quizQuestions.length > 0 &&
         currentScore < quizQuestions.length && (
           <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-            You need a perfect score to advance. Retake the quiz or generate new
-            questions to continue.
+            {c.learn.blocked}
           </p>
         )}
 

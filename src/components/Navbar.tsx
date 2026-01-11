@@ -1,14 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { useLanguage } from "@/components/LanguageContext";
+import { copy } from "@/lib/i18n";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 
 export default function Navbar() {
   const [isAuthed, setIsAuthed] = useState(false);
+  const { language, setLanguage } = useLanguage();
+  const c = copy[language];
 
   useEffect(() => {
     let isMounted = true;
     const init = async () => {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        return;
+      }
       const { data } = await supabase.auth.getSession();
       if (!isMounted) {
         return;
@@ -16,6 +24,10 @@ export default function Navbar() {
       setIsAuthed(Boolean(data.session));
     };
     init();
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return;
+    }
     const { data: subscription } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setIsAuthed(Boolean(session));
@@ -28,6 +40,10 @@ export default function Navbar() {
   }, []);
 
   const handleSignOut = async () => {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return;
+    }
     await supabase.auth.signOut({ scope: "local" });
   };
 
@@ -38,25 +54,34 @@ export default function Navbar() {
           href="/"
           className="text-sm font-semibold uppercase tracking-[0.3em] text-black/70"
         >
-          Shepherd Learning
+          {c.appName}
         </a>
-        {isAuthed && (
-          <div className="flex items-center gap-4">
-            <a
-              href="/review"
-              className="text-xs font-semibold uppercase tracking-[0.3em] text-black/50"
-            >
-              Review
-            </a>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="text-xs font-semibold uppercase tracking-[0.3em] text-black/50"
-            >
-              Sign out
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => setLanguage(language === "en" ? "es" : "en")}
+            className="rounded-full border border-black/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-black/50"
+          >
+            {language === "en" ? "ES" : "EN"}
+          </button>
+          {isAuthed && (
+            <div className="flex items-center gap-4">
+              <a
+                href="/review"
+                className="text-xs font-semibold uppercase tracking-[0.3em] text-black/50"
+              >
+                {c.nav.review}
+              </a>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="text-xs font-semibold uppercase tracking-[0.3em] text-black/50"
+              >
+                {c.nav.signOut}
+              </button>
+            </div>
+          )}
+        </div>
       </nav>
     </header>
   );

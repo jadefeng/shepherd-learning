@@ -9,6 +9,7 @@ export async function POST(request: Request) {
       videoTitle?: string;
       transcriptText?: string;
       seed?: number;
+      language?: "en" | "es";
     };
     if (!body.videoId || !body.videoTitle || !body.transcriptText) {
       return NextResponse.json(
@@ -30,13 +31,19 @@ export async function POST(request: Request) {
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const transcriptText = body.transcriptText.slice(0, 8000);
+    const language = body.language ?? "en";
     const prompt = [
       "You are an OSHA safety trainer creating assessment questions.",
       "Read the module transcript and generate exactly 3 original multiple-choice questions.",
       "Questions must reference specific details from the transcript (numbers, steps, order, equipment, or rules).",
-      "Do not mention the word transcript. Use the word module if needed.",
+      language === "es"
+        ? "Do not mention the word transcript. Use the word modulo if needed."
+        : "Do not mention the word transcript. Use the word module if needed.",
       "Each question must have 4 choices (A-D), with exactly one correct answer.",
       "The other 3 choices should be clearly wrong but plausible.",
+      language === "es"
+        ? "Write all prompts, choices, and explanations in Spanish."
+        : "Write all prompts, choices, and explanations in English.",
       "Return ONLY valid JSON following the provided schema.",
     ].join(" ");
 

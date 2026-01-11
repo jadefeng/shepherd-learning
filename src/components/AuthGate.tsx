@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
+import { useLanguage } from "@/components/LanguageContext";
+import { copy } from "@/lib/i18n";
 import { AuthProvider } from "@/components/AuthContext";
 
 type AuthGateProps = {
@@ -20,12 +22,20 @@ export default function AuthGate({ children }: AuthGateProps) {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { language } = useLanguage();
+  const c = copy[language];
 
   const isModalVisible = useMemo(() => !session, [session]);
 
   useEffect(() => {
     let isMounted = true;
     const init = async () => {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        setError(c.auth.supabaseMissing);
+        setIsLoading(false);
+        return;
+      }
       const { data } = await supabase.auth.getSession();
       if (!isMounted) {
         return;
@@ -34,6 +44,10 @@ export default function AuthGate({ children }: AuthGateProps) {
       setIsLoading(false);
     };
     init();
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      return;
+    }
     const { data: subscription } = supabase.auth.onAuthStateChange(
       (event, nextSession) => {
         setSession(nextSession ? { userId: nextSession.user.id } : null);
@@ -62,6 +76,10 @@ export default function AuthGate({ children }: AuthGateProps) {
     setMessage(null);
     setIsSubmitting(true);
     try {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        throw new Error("Supabase is not configured.");
+      }
       if (mode === "signIn") {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -88,13 +106,13 @@ export default function AuthGate({ children }: AuthGateProps) {
         if (resetError) {
           throw resetError;
         }
-        setMessage("Check your email for a password reset link.");
+        setMessage(c.auth.resetSent);
       } else if (mode === "updatePassword") {
         if (password.length < 6) {
-          throw new Error("Password must be at least 6 characters.");
+          throw new Error(c.auth.passwordTooShort);
         }
         if (password !== confirmPassword) {
-          throw new Error("Passwords do not match.");
+          throw new Error(c.auth.passwordMismatch);
         }
         const { error: updateError } = await supabase.auth.updateUser({
           password,
@@ -102,18 +120,22 @@ export default function AuthGate({ children }: AuthGateProps) {
         if (updateError) {
           throw updateError;
         }
-        setMessage("Password updated. You can sign in now.");
+        setMessage(c.auth.passwordUpdated);
         setMode("signIn");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to authenticate.");
+      setError(
+        err instanceof Error ? err.message : c.auth.supabaseMissing,
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (isLoading) {
-    return <div className="px-4 py-10 text-sm text-black/60">Loading...</div>;
+    return (
+      <div className="px-4 py-10 text-sm text-black/60">{c.auth.loading}</div>
+    );
   }
 
   return (
@@ -124,25 +146,25 @@ export default function AuthGate({ children }: AuthGateProps) {
           <div className="w-full max-w-md space-y-5 rounded-3xl border border-black/10 bg-white p-6 shadow-[0_30px_80px_-60px_rgba(0,0,0,0.6)]">
             <div className="space-y-2 text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-black/40">
-                Shepherd Learning
+                {c.appName}
               </p>
               <h2 className="text-2xl font-semibold">
                 {mode === "signIn"
-                  ? "Sign in"
+                  ? c.auth.headlineSignIn
                   : mode === "signUp"
-                    ? "Create an account"
+                    ? c.auth.headlineSignUp
                     : mode === "reset"
-                      ? "Reset password"
-                      : "Set a new password"}
+                      ? c.auth.headlineReset
+                      : c.auth.headlineUpdate}
               </h2>
               <p className="text-sm text-black/60">
-                Log in to continue your safety training.
+                {c.auth.subtitle}
               </p>
             </div>
 
             <div className="space-y-3">
               <label className="flex flex-col gap-2 text-sm font-medium text-black/70">
-                Email
+                {c.auth.emailLabel}
                 <input
                   type="email"
                   value={email}
@@ -152,7 +174,7 @@ export default function AuthGate({ children }: AuthGateProps) {
               </label>
               {mode !== "reset" && (
                 <label className="flex flex-col gap-2 text-sm font-medium text-black/70">
-                  Password
+                  {c.auth.passwordLabel}
                   <input
                     type="password"
                     value={password}
@@ -163,7 +185,7 @@ export default function AuthGate({ children }: AuthGateProps) {
               )}
               {mode === "updatePassword" && (
                 <label className="flex flex-col gap-2 text-sm font-medium text-black/70">
-                  Confirm password
+                  {c.auth.confirmPasswordLabel}
                   <input
                     type="password"
                     value={confirmPassword}
@@ -189,12 +211,12 @@ export default function AuthGate({ children }: AuthGateProps) {
                 className="w-full rounded-full bg-[var(--primary)] px-4 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {mode === "signIn"
-                  ? "Sign in"
+                  ? c.auth.signIn
                   : mode === "signUp"
-                    ? "Create account"
+                    ? c.auth.signUp
                     : mode === "reset"
-                      ? "Send reset link"
-                      : "Update password"}
+                      ? c.auth.sendReset
+                      : c.auth.updatePassword}
               </button>
             </div>
 
@@ -210,8 +232,8 @@ export default function AuthGate({ children }: AuthGateProps) {
               }}
             >
               {mode === "signIn"
-                ? "Need an account? Sign up"
-                : "Already have an account? Sign in"}
+                ? c.auth.toggleToSignUp
+                : c.auth.toggleToSignIn}
             </button>
             {mode !== "updatePassword" && (
               <button
@@ -223,7 +245,7 @@ export default function AuthGate({ children }: AuthGateProps) {
                   setMode("reset");
                 }}
               >
-                Forgot password?
+                {c.auth.forgotPassword}
               </button>
             )}
           </div>
