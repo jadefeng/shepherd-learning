@@ -1,3 +1,5 @@
+import { copy, type LanguageCode } from "@/lib/i18n";
+
 export type Course = {
   id: string;
   title: string;
@@ -46,3 +48,13 @@ export const getVideoEmbedUrl = (videoId: string) =>
 
 export const getVideoWatchUrl = (videoId: string) =>
   `https://www.youtube.com/watch?v=${videoId}`;
+
+export const getCourseCopy = (course: Course, language: LanguageCode) => {
+  const localized = copy[language]?.courses?.[course.id];
+  const fallback = copy.en.courses?.[course.id];
+  return {
+    title: localized?.title ?? fallback?.title ?? course.title,
+    description:
+      localized?.description ?? fallback?.description ?? course.description,
+  };
+};

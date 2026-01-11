@@ -43,6 +43,18 @@ export const copy = {
       startCourse: "Start course",
       resumeCourse: "Resume course",
     },
+    courses: {
+      "osha-foundations": {
+        title: "OSHA Foundations",
+        description:
+          "Short OSHA training videos with knowledge checks after each lesson.",
+      },
+      "ladder-safety": {
+        title: "Ladder Safety in Construction",
+        description:
+          "Ladder safety essentials for construction crews, inspections, and daily use.",
+      },
+    },
     progress: {
       title: "Course progress",
       lesson: "Lesson",
@@ -155,6 +167,18 @@ export const copy = {
       lessonsMeta: "lecciones",
       startCourse: "Iniciar curso",
       resumeCourse: "Reanudar curso",
+    },
+    courses: {
+      "osha-foundations": {
+        title: "Fundamentos de OSHA",
+        description:
+          "Videos cortos de capacitacion OSHA con evaluaciones despues de cada leccion.",
+      },
+      "ladder-safety": {
+        title: "Seguridad con escaleras en construccion",
+        description:
+          "Elementos clave de seguridad con escaleras para cuadrillas, inspecciones y uso diario.",
+      },
     },
     progress: {
       title: "Progreso del curso",

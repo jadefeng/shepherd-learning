@@ -10,7 +10,12 @@ import TranscriptPanel from "@/components/TranscriptPanel";
 import VideoPlayer from "@/components/VideoPlayer";
 import { useLanguage } from "@/components/LanguageContext";
 import { copy } from "@/lib/i18n";
-import { getCourseById, getTotalLessons, getVideoWatchUrl } from "@/lib/course";
+import {
+  getCourseById,
+  getCourseCopy,
+  getTotalLessons,
+  getVideoWatchUrl,
+} from "@/lib/course";
 import type { QuizQuestion as QuizQuestionType } from "@/lib/quiz";
 import { loadProgress, saveProgress, type AnswerChoice } from "@/lib/storage";
 
@@ -53,6 +58,7 @@ export default function LearnClient() {
   const isFirstLesson = currentIndex === 0;
   const { language } = useLanguage();
   const c = copy[language];
+  const courseCopy = getCourseCopy(course, language);
 
   const availableTranscript = transcriptState.text;
   const displayTranscript =
@@ -231,7 +237,7 @@ export default function LearnClient() {
       return;
     }
     const fallbackTranscript = [
-      `${videoTitle} covers core expectations for safe work in ${course.title}.`,
+      `${videoTitle} covers core expectations for safe work in ${courseCopy.title}.`,
       "Workers should follow required procedures, report hazards, and use protective equipment.",
       "The module emphasizes identifying risks early and communicating safety concerns.",
       "Always follow supervisor guidance and safety rules to reduce incidents.",

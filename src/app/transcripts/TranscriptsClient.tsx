@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { getCourseById } from "@/lib/course";
+import { getCourseById, getCourseCopy } from "@/lib/course";
 import { useLanguage } from "@/components/LanguageContext";
 import { copy } from "@/lib/i18n";
 
@@ -19,6 +19,7 @@ export default function TranscriptsClient() {
   const [translations, setTranslations] = useState<Record<string, string>>({});
   const { language } = useLanguage();
   const c = copy[language];
+  const courseCopy = getCourseCopy(course, language);
 
   const translationPrefix = useMemo(
     () => `shepherd-translation:library:${course.id}`,
@@ -140,7 +141,7 @@ export default function TranscriptsClient() {
           {c.transcriptLibrary.title}
         </p>
         <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">
-          {c.transcriptLibrary.subtitle} {course.title}
+          {c.transcriptLibrary.subtitle} {courseCopy.title}
         </h1>
         <p className="mt-2 text-sm text-black/60">
           {c.transcriptLibrary.body}

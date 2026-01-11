@@ -6,7 +6,7 @@ import CourseIntro from "@/components/CourseIntro";
 import { useAuth } from "@/components/AuthContext";
 import { useLanguage } from "@/components/LanguageContext";
 import { copy } from "@/lib/i18n";
-import { courses, getTotalLessons } from "@/lib/course";
+import { courses, getCourseCopy, getTotalLessons } from "@/lib/course";
 import { loadProgress } from "@/lib/storage";
 
 export default function Home() {
@@ -62,17 +62,20 @@ export default function Home() {
       </section>
       {isAuthenticated && (
         <div className="flex w-full max-w-5xl flex-col gap-6">
-          {courses.map((course) => (
-            <CourseIntro
-              key={course.id}
-              title={course.title}
-              description={course.description}
-              totalLessons={getTotalLessons(course)}
-              hasProgress={progressMap[course.id] ?? false}
-              course={course}
-              onStart={() => router.push(`/learn?course=${course.id}`)}
-            />
-          ))}
+          {courses.map((course) => {
+            const courseCopy = getCourseCopy(course, language);
+            return (
+              <CourseIntro
+                key={course.id}
+                title={courseCopy.title}
+                description={courseCopy.description}
+                totalLessons={getTotalLessons(course)}
+                hasProgress={progressMap[course.id] ?? false}
+                course={course}
+                onStart={() => router.push(`/learn?course=${course.id}`)}
+              />
+            );
+          })}
         </div>
       )}
     </main>

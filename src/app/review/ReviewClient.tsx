@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ProgressBar from "@/components/ProgressBar";
-import { courses, getTotalLessons } from "@/lib/course";
+import { courses, getCourseCopy, getTotalLessons } from "@/lib/course";
 import { defaultProgress, loadProgress, saveProgress } from "@/lib/storage";
 import { useLanguage } from "@/components/LanguageContext";
 import { copy } from "@/lib/i18n";
@@ -37,14 +37,15 @@ export default function ReviewClient() {
           videoId: id,
           score: progress.completed[id].score,
         }));
+      const courseCopy = getCourseCopy(course, language);
       return {
         courseId: course.id,
-        title: course.title,
+        title: courseCopy.title,
         completed: items,
       };
     });
     setSummaries(nextSummaries);
-  }, []);
+  }, [language]);
 
   const handleReset = (courseId: string) => {
     setResetCourseId(courseId);
