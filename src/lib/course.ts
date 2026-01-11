@@ -32,10 +32,6 @@ export const courses: Course[] = [
       "LndgPWwAFsg",
       "7lpWZPgm_eA",
       "8_lfU0pP8b4",
-      "IlsU2ljs99Y",
-      "vLYJ_bbEWds",
-      "xBGB9Vz0ems",
-      "oyXbWCXR15Q",
     ],
   },
 ];

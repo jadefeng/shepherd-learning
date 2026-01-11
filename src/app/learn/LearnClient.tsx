@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import NavigationFooter from "@/components/NavigationFooter";
 import ProgressBar from "@/components/ProgressBar";
@@ -310,12 +309,6 @@ export default function LearnClient() {
         isLoading={transcriptLoading}
         errorMessage={transcriptError}
       />
-      <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-black/50">
-        <span>Need to paste a transcript?</span>
-        <Link href={`/transcripts?course=${course.id}`} className="text-black/70">
-          View transcript library
-        </Link>
-      </div>
 
       <section className="space-y-4 rounded-3xl border border-black/10 bg-white/85 p-5">
         <div className="flex flex-wrap items-center justify-between gap-2">

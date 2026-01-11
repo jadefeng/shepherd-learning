@@ -25,6 +25,13 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - In Vercel, add the same key in Project Settings → Environment Variables.
 - The server route `src/app/api/generate-quiz/route.ts` calls `gpt-4o-mini` and returns exactly 3 MCQs.
 
+## Supabase authentication
+
+- Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local`.
+- In Vercel, add the same variables in Project Settings → Environment Variables.
+- All pages are protected by a login modal supporting email/password and Google OAuth.
+- Password reset uses the Supabase recovery flow and redirects back to the app.
+
 ## Replacing the heuristic quiz generator
 
 `src/lib/quiz.ts` contains the deterministic fallback generator. If you want to disable OpenAI, swap the API route to call `generateQuiz` directly.

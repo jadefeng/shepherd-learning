@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import type { Course } from "@/lib/course";
 import ProgressBar from "@/components/ProgressBar";
 
@@ -33,15 +32,7 @@ export default function CourseIntro({
         </p>
       </div>
       <ProgressBar variant="embedded" course={course} />
-      <div className="flex flex-col gap-2 rounded-2xl border border-black/10 bg-[var(--surface)] p-4 text-sm font-medium text-black/70 sm:flex-row sm:items-center sm:justify-between">
-        <span>{totalLessons} lessons · Mobile-first safety training</span>
-      </div>
-      <Link
-        href={`/transcripts?course=${course.id}`}
-        className="text-xs font-semibold uppercase tracking-[0.3em] text-black/50"
-      >
-        View transcript library
-      </Link>
+
       <button
         type="button"
         onClick={onStart}
