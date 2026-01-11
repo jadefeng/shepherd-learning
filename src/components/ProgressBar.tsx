@@ -10,11 +10,13 @@ import { loadProgress, saveProgress } from "@/lib/storage";
 type ProgressBarProps = {
   variant?: "sticky" | "embedded";
   course: Course;
+  showLessonMeta?: boolean;
 };
 
 export default function ProgressBar({
   variant = "sticky",
   course,
+  showLessonMeta = true,
 }: ProgressBarProps) {
   const router = useRouter();
   const [completedIds, setCompletedIds] = useState<string[]>([]);
@@ -61,9 +63,14 @@ export default function ProgressBar({
         <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.2em] text-black/60">
           <span>{c.progress.title}</span>
           <span>
-            {Math.round(progress * 100)}% · {c.progress.lesson}{" "}
-            {Math.min(currentIndex + 1, totalLessons)} {c.progress.of}{" "}
-            {totalLessons}
+            {Math.round(progress * 100)}% {c.progress.completed}
+            {showLessonMeta && (
+              <>
+                {" "}
+                · {c.progress.lesson} {Math.min(currentIndex + 1, totalLessons)}{" "}
+                {c.progress.of} {totalLessons}
+              </>
+            )}
           </span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-black/10">

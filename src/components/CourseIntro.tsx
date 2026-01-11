@@ -35,7 +35,7 @@ export default function CourseIntro({
           {description}
         </p>
       </div>
-      <ProgressBar variant="embedded" course={course} />
+      <ProgressBar variant="embedded" course={course} showLessonMeta={false} />
       <div className="flex flex-col gap-2 rounded-2xl border border-black/10 bg-[var(--surface)] p-4 text-sm font-medium text-black/70 sm:flex-row sm:items-center sm:justify-between">
         <span>
           {totalLessons} {c.home.lessonsMeta}

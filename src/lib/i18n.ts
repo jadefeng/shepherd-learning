@@ -39,7 +39,7 @@ export const copy = {
       chip2: "Progress tracking",
       chip3: "Knowledge checks",
       safetySeries: "Safety learning series",
-      lessonsMeta: "lessons · Mobile-first safety training",
+      lessonsMeta: "lessons",
       startCourse: "Start course",
       resumeCourse: "Resume course",
     },
@@ -48,6 +48,7 @@ export const copy = {
       lesson: "Lesson",
       of: "of",
       locked: "Complete this lesson to unlock.",
+      completed: "completed",
     },
     learn: {
       lesson: "Lesson",
@@ -151,7 +152,7 @@ export const copy = {
       chip2: "Progreso visible",
       chip3: "Evaluaciones rapidas",
       safetySeries: "Serie de aprendizaje",
-      lessonsMeta: "lecciones · capacitacion de seguridad",
+      lessonsMeta: "lecciones",
       startCourse: "Iniciar curso",
       resumeCourse: "Reanudar curso",
     },
@@ -160,6 +161,7 @@ export const copy = {
       lesson: "Leccion",
       of: "de",
       locked: "Completa esta leccion para desbloquear.",
+      completed: "completado",
     },
     learn: {
       lesson: "Leccion",
